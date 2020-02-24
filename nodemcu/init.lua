@@ -6,21 +6,26 @@ function readout(temp)
 end
 
 --通过串口控制模块发送数据
-function senduart(s)
+--必须使用玄学方法，用tmr.delay会卡爆，应该是看门狗杀死的
+function senduart()
     uart.write(1,"\r\nAT+CIPMODE=1\r\n")
-    tmr.delay(1000*1000)
-    uart.write(1,'AT+CIPSTART="TCP","114.55.93.225",2333\r\n')
-    tmr.delay(20*1000*1000)
-    uart.write(1,s.."\r\n")
-    print("Send to server ok")
-    status=1
+    print("Wait CIPMODE")
+    tmr.create():alarm(1000,tmr.ALARM_SINGLE,function()
+        print("Wait Connect")
+        uart.write(1,'AT+CIPSTART="TCP","114.55.93.225",2333\r\n')
+        tmr.create():alarm(20*1000,tmr.ALARM_SINGLE,function()
+            uart.write(1,s.."\r\n")
+            print("Send to server ok")
+            status=1
+        end)
+    end)
 end
 
 function sendtemp()
     --等待dnt11
-    status=-1
-    while status~=dht.OK do
-    status, tmp1, humi, temp_dec, humi_dec = dht.read11(6)
+    dhtstatus=-1
+    while dhtstatus~=dht.OK do
+    dhtstatus, tmp1, humi, temp_dec, humi_dec = dht.read11(6)
     end
     
     --等待bmp温度
@@ -41,9 +46,9 @@ function sendtemp()
         t:read_temp(readout, 5, t.C)
         tmr.create():alarm(1000,tmr.ALARM_SINGLE,sendtemp)
     else
-        print(tmp0,tmp1,humi,tmp2,pres)
         s=tmp0.."/"..tmp1.."/"..humi.."/"..(tmp2/10)..'.'..(tmp2%10)..'/'..pres
-        senduart(s)
+        print(s)
+        senduart()
     end
 end
 
@@ -60,9 +65,7 @@ bmp085.setup()
 
 --开始发送，延时以保证通信模块初始化完全
 status=0
-tmr.create():alarm(30*1000,tmr.ALARM_AUTO,function()
-    sendtemp()
-end)
+tmr.create():alarm(30*1000,tmr.ALARM_SINGLE,sendtemp)
 
 --深度睡眠
 tmr.create():alarm(1000,tmr.ALARM_AUTO,function()
