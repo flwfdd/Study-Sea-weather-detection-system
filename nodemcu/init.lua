@@ -27,19 +27,16 @@ function sendtemp()
     while dhtstatus~=dht.OK do
     dhtstatus, tmp1, humi, temp_dec, humi_dec = dht.read11(6)
     end
-    
     --等待bmp温度
     tmp2=-1000
     while tmp2<-500 do
     tmp2=bmp085.temperature()
     end
-    
     --等待bmp压强
     pres=-100
     while pres<0 do
     pres=bmp085.pressure()
     end
-    
     --等待ds18b20温度，nodemcu调用这个模块不大聪明的亚子
     if(tmp0==-100)then
         print("Waiting %d",tmp0)
@@ -52,6 +49,10 @@ function sendtemp()
     end
 end
 
+tmr.create():alarm(90*1000,tmr.ALARM_SINGLE,function()
+    print("TimeOut Restart")
+    node.dsleep(5*1000*1000)
+end)
 
 --初始化ds18b20和i2c
 t = require("ds18b20")
@@ -60,8 +61,6 @@ t:read_temp(readout,5,t.C)
 
 i2c.setup(0,2,1,i2c.SLOW)
 bmp085.setup()
-
---延时保证通信模块初始化完成
 
 --开始发送，延时以保证通信模块初始化完全
 status=0
