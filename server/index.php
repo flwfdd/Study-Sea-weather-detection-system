@@ -7,6 +7,7 @@
     <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
     <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <title>SU-Ours</title>
     <!-- 引入 echarts.js -->
     <script src="https://cdn.bootcss.com/echarts/4.4.0-rc.1/echarts-en.common.js"></script>
@@ -81,44 +82,25 @@
 </head>
 <body>
 <?php require("../pack/head.php")?>
-    <script type="text/javascript" src="./data.js"></script>
+
 
     <div class='container'>
     <div class='card'>
         
     <div class='card-body'>
-        <h2 class='text-center'>学海水温侦测系统</h2>
-        <a class='btn btn-block btn-primary' href="#main0">
-            当前水温：
-            <script>
-            document.write(tmp0[tmp0.length-1][1])
-            </script>
-            ℃
+        <del><h2 class='text-center'>学海水温侦测系统</h2></del>
+        <h1 class='text-center'>天气之子</h1>
+        <a id="nowtmp0" class='btn btn-block btn-primary' href="#main0">
         </a>
 
-        <a class='btn btn-block btn-success' href="#main1">
-            当前气温：
-            <script>
-            document.write(tmp2[tmp2.length-1][1])
-            </script>
-            ℃
+        <a id="nowtmp2" class='btn btn-block btn-success' href="#main1">
         </a>
 
 
-        <a class='btn btn-block btn-warning' href="#main1">
-            当前气压：
-            <script>
-            document.write(pres[pres.length-1][1])
-            </script>
-            Pa
+        <a id="nowpres" class='btn btn-block btn-warning' href="#main1">
         </a>
 
-        <a class='btn btn-block btn-danger' href="#main2">
-            当前湿度：
-            <script>
-            document.write(humi[humi.length-1][1])
-            </script>
-            %
+        <a id="nowhumi" class='btn btn-block btn-danger' href="#main2">
         </a>
 
         
@@ -130,7 +112,19 @@
 
     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
     <div id="main0" style="height:500px;"></div>
-    <script type="text/javascript">
+    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+    <div id="main1" style="height:500px;"></div>
+     <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+     <div id="main2" style="height:500px;"></div>
+    <script>
+        axios.get("./data.js?t="+new Date())
+        .then(function(r){
+            data=r.data;
+
+            document.getElementById("nowtmp0").innerHTML="当前水温："+data.tmp0[data.tmp0.length-1][1]+"℃";
+            document.getElementById("nowtmp2").innerHTML="当前气温："+data.tmp2[data.tmp2.length-1][1]+"℃";
+            document.getElementById("nowhumi").innerHTML="当前湿度："+data.humi[data.humi.length-1][1]+"%";
+            document.getElementById("nowpres").innerHTML="当前气压："+data.pres[data.pres.length-1][1]+"Pa";
         // 基于准备好的dom，初始化echarts实例
         var myChart = echarts.init(document.getElementById('main0'));
 
@@ -138,7 +132,7 @@
         
 
 
-option = {
+option0 = {
     tooltip: {
         trigger: 'axis',
         position: function (pt) {
@@ -194,20 +188,17 @@ option = {
             itemStyle: {
                 color: 'rgb(255, 70, 131)'
             },
-            data: tmp0
+            data: data.tmp0
         }
     ]
 };
 
 
         // 使用刚指定的配置项和数据显示图表。
-        myChart.setOption(option);
+        myChart.setOption(option0);
         window.onresize = myChart.resize;
-    </script>
 
-    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="main1" style="height:500px;"></div>
-    <script type="text/javascript">
+
         // 基于准备好的dom，初始化echarts实例
         var myChart1 = echarts.init(document.getElementById('main1'));
 
@@ -215,7 +206,7 @@ option = {
         
 
 
-option = {
+option1 = {
     tooltip: {
         trigger: 'axis',
         position: function (pt) {
@@ -276,7 +267,7 @@ option = {
             itemStyle: {
                 color: 'rgb(255, 70, 131)'
             },
-            data: tmp2
+            data: data.tmp2
         },
         {
             name:'气压',
@@ -287,20 +278,17 @@ option = {
             itemStyle: {
                 color: 'rgb(70, 131, 255)'
             },
-            data: pres
+            data: data.pres
         }
     ]
 };
 
 
         // 使用刚指定的配置项和数据显示图表。
-        myChart1.setOption(option);
+        myChart1.setOption(option1);
         window.onresize = myChart.resize;
-    </script>
 
-    <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
-    <div id="main2" style="height:500px;"></div>
-    <script type="text/javascript">
+   
         // 基于准备好的dom，初始化echarts实例
         var myChart = echarts.init(document.getElementById('main2'));
 
@@ -308,7 +296,7 @@ option = {
         
 
 
-option = {
+option2 = {
     tooltip: {
         trigger: 'axis',
         position: function (pt) {
@@ -368,7 +356,7 @@ option = {
             itemStyle: {
                 color: 'rgb(255, 70, 131)'
             },
-            data: tmp1
+            data: data.tmp1
         },
         {
             name:'湿度',
@@ -379,15 +367,18 @@ option = {
             itemStyle: {
                 color: 'rgb(70, 131, 255)'
             },
-            data: humi
+            data: data.humi
         }
     ]
 };
 
 
         // 使用刚指定的配置项和数据显示图表。
-        myChart.setOption(option);
+        myChart.setOption(option2);
         window.onresize = myChart.resize;
+
+
+    });
     </script>
 
 
